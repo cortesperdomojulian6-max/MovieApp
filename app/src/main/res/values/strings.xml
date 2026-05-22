@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">MovieApp</string>
+    <string name="popular_movies">Películas Populares</string>
+    <string name="favorites">Favoritos</string>
+    <string name="settings">Configuración</string>
+    <string name="dark_mode">Modo Oscuro</string>
+    <string name="overview">Sinopsis</string>
+    <string name="rating">Puntuación</string>
+    <string name="release_date">Fecha de estreno</string>
+    <string name="add_favorite">Agregar a favoritos</string>
+    <string name="remove_favorite">Quitar de favoritos</string>
+    <string name="no_favorites">No tienes películas favoritas aún</string>
+    <string name="error_loading">Error al cargar datos</string>
+    <string name="retry">Reintentar</string>
+</resources>
