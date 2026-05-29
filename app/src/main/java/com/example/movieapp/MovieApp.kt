@@ -13,7 +13,7 @@ class MovieApp : Application() {
     lateinit var repository: MovieRepository
         private set
 
-    private val _isDarkMode = MutableStateFlow(false)
+    private val _isDarkMode = MutableStateFlow(true)
     val isDarkMode: StateFlow<Boolean> = _isDarkMode.asStateFlow()
 
     override fun onCreate() {
@@ -22,7 +22,7 @@ class MovieApp : Application() {
         repository = MovieRepository(database)
 
         val prefs = getSharedPreferences("settings", Context.MODE_PRIVATE)
-        _isDarkMode.value = prefs.getBoolean("dark_mode", false)
+        _isDarkMode.value = prefs.getBoolean("dark_mode", true)
     }
 
     fun setDarkMode(enabled: Boolean) {

@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -31,6 +32,7 @@ import com.example.movieapp.data.repository.MovieRepository
 import com.example.movieapp.ui.screens.detail.MovieDetailScreen
 import com.example.movieapp.ui.screens.list.MovieListScreen
 import com.example.movieapp.ui.screens.settings.SettingsScreen
+import com.example.movieapp.ui.screens.splash.SplashScreen
 
 data class BottomNavItem(
     val label: String,
@@ -54,7 +56,7 @@ fun MovieNavGraph() {
         Screen.MovieList.route,
         Screen.Favorites.route,
         Screen.Settings.route
-    )
+    ) && currentDestination?.route != Screen.Splash.route
 
     Scaffold(
         bottomBar = {
@@ -63,7 +65,10 @@ fun MovieNavGraph() {
                 enter = slideInVertically(initialOffsetY = { it }),
                 exit = slideOutVertically(targetOffsetY = { it })
             ) {
-                NavigationBar {
+                NavigationBar(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                ) {
                     bottomNavItems.forEach { item ->
                         val selected = currentDestination?.hierarchy?.any {
                             it.route == item.screen.route
@@ -93,9 +98,18 @@ fun MovieNavGraph() {
 
         NavHost(
             navController = navController,
-            startDestination = Screen.MovieList.route,
+            startDestination = Screen.Splash.route,
             modifier = Modifier.padding(innerPadding)
         ) {
+            composable(Screen.Splash.route) {
+                SplashScreen(
+                    onNavigate = {
+                        navController.navigate(Screen.MovieList.route) {
+                            popUpTo(Screen.Splash.route) { inclusive = true }
+                        }
+                    }
+                )
+            }
             composable(Screen.MovieList.route) {
                 MovieListScreen(
                     repository = repository,

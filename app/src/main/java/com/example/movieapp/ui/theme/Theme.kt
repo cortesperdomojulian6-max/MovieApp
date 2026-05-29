@@ -14,17 +14,32 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+    primary = CinemaGold,
+    secondary = CinemaRed,
+    tertiary = CinemaGoldDark,
+    background = DarkBackground,
+    surface = DarkSurface,
+    surfaceVariant = DarkCard,
+    onPrimary = DarkBackground,
+    onSecondary = Color.White,
+    onBackground = Color.White,
+    onSurface = Color(0xFFE8E8E8),
+    onSurfaceVariant = Color(0xFFA0A0A0),
+    outline = Color(0xFF333333)
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40,
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE)
+    primary = CinemaGoldDark,
+    secondary = CinemaRed,
+    tertiary = CinemaGold,
+    background = LightBackground,
+    surface = LightSurface,
+    surfaceVariant = LightCard,
+    onPrimary = Color.White,
+    onSecondary = Color.White,
+    onBackground = Color(0xFF1A1A1A),
+    onSurface = Color(0xFF1A1A1A),
+    onSurfaceVariant = Color(0xFF6B6B6B)
 )
 
 @Composable
@@ -38,8 +53,10 @@ fun MovieAppTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.primary.toArgb()
+            window.statusBarColor = Color.Transparent.toArgb()
+            window.navigationBarColor = Color.Transparent.toArgb()
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+            WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = !darkTheme
         }
     }
 

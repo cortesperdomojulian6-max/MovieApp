@@ -5,6 +5,7 @@ import com.example.movieapp.data.local.FavoriteMovie
 import com.example.movieapp.data.local.MovieDatabase
 import com.example.movieapp.data.model.Movie
 import com.example.movieapp.data.model.MovieDetail
+import com.example.movieapp.data.model.MovieVideo
 import kotlinx.coroutines.flow.Flow
 
 class MovieRepository(private val database: MovieDatabase) {
@@ -32,6 +33,27 @@ class MovieRepository(private val database: MovieDatabase) {
 
     fun getAllFavorites(): Flow<List<FavoriteMovie>> {
         return dao.getAllFavorites()
+    }
+
+    suspend fun searchMovies(query: String, page: Int = 1): Result<List<Movie>> {
+        return try {
+            val response = api.searchMovies(query = query, page = page)
+            Result.success(response.results)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getMovieTrailer(movieId: Int): Result<MovieVideo?> {
+        return try {
+            val videos = api.getMovieVideos(movieId)
+            val trailer = videos.results.firstOrNull {
+                it.site == "YouTube" && it.type == "Trailer"
+            }
+            Result.success(trailer)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
     fun isFavorite(movieId: Int): Flow<Boolean> {

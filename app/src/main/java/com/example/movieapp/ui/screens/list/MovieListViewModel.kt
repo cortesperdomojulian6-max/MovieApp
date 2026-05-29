@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.movieapp.data.local.FavoriteMovie
 import com.example.movieapp.data.model.Movie
 import com.example.movieapp.data.repository.MovieRepository
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,7 +18,11 @@ data class MovieListUiState(
     val favoriteMovies: List<FavoriteMovie> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null,
-    val favoriteIds: Set<Int> = emptySet()
+    val favoriteIds: Set<Int> = emptySet(),
+    val searchQuery: String = "",
+    val searchResults: List<Movie> = emptyList(),
+    val isSearching: Boolean = false,
+    val isSearchActive: Boolean = false
 )
 
 class MovieListViewModel(
@@ -26,6 +32,8 @@ class MovieListViewModel(
 
     private val _uiState = MutableStateFlow(MovieListUiState())
     val uiState: StateFlow<MovieListUiState> = _uiState.asStateFlow()
+
+    private var searchJob: Job? = null
 
     init {
         loadMovies()
@@ -58,6 +66,41 @@ class MovieListViewModel(
                 }
             )
         }
+    }
+
+    fun onSearchQueryChanged(query: String) {
+        _uiState.value = _uiState.value.copy(searchQuery = query, isSearchActive = query.isNotBlank())
+        searchJob?.cancel()
+        if (query.isBlank()) {
+            _uiState.value = _uiState.value.copy(searchResults = emptyList(), isSearching = false)
+            return
+        }
+        searchJob = viewModelScope.launch {
+            delay(400)
+            _uiState.value = _uiState.value.copy(isSearching = true)
+            val result = repository.searchMovies(query)
+            result.fold(
+                onSuccess = { movies ->
+                    _uiState.value = _uiState.value.copy(
+                        searchResults = movies,
+                        isSearching = false
+                    )
+                },
+                onFailure = {
+                    _uiState.value = _uiState.value.copy(isSearching = false)
+                }
+            )
+        }
+    }
+
+    fun clearSearch() {
+        _uiState.value = _uiState.value.copy(
+            searchQuery = "",
+            searchResults = emptyList(),
+            isSearchActive = false,
+            isSearching = false
+        )
+        searchJob?.cancel()
     }
 
     private fun observeFavorites() {

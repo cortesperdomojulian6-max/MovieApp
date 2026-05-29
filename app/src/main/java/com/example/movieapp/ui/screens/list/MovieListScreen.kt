@@ -1,19 +1,33 @@
 package com.example.movieapp.ui.screens.list
 
+
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Movie
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -50,77 +64,132 @@ fun MovieListScreen(
             TopAppBar(
                 title = { Text(title) },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
         }
     ) { padding ->
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            when {
-                uiState.isLoading -> {
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                }
-
-                uiState.error != null -> {
-                    Column(
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .padding(32.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
+            if (!showFavoritesOnly) {
+                OutlinedTextField(
+                    value = uiState.searchQuery,
+                    onValueChange = { viewModel.onSearchQueryChanged(it) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    placeholder = { Text("Buscar películas...") },
+                    leadingIcon = {
                         Icon(
-                            imageVector = Icons.Filled.Movie,
-                            contentDescription = null,
-                            modifier = Modifier.padding(bottom = 8.dp)
+                            imageVector = Icons.Filled.Search,
+                            contentDescription = "Buscar"
                         )
+                    },
+                    trailingIcon = {
+                        if (uiState.isSearchActive) {
+                            IconButton(onClick = { viewModel.clearSearch() }) {
+                                Icon(
+                                    imageVector = Icons.Filled.Close,
+                                    contentDescription = "Limpiar búsqueda"
+                                )
+                            }
+                        }
+                    },
+                    singleLine = true,
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                        cursorColor = MaterialTheme.colorScheme.primary
+                    )
+                )
+            }
+
+            Box(modifier = Modifier.fillMaxSize()) {
+                when {
+                    uiState.isLoading -> {
+                        CircularProgressIndicator(
+                            modifier = Modifier.align(Alignment.Center)
+                        )
+                    }
+
+                    uiState.isSearching -> {
+                        CircularProgressIndicator(
+                            modifier = Modifier.align(Alignment.Center)
+                        )
+                    }
+
+                    uiState.isSearchActive && uiState.searchResults.isEmpty() && !uiState.isSearching -> {
                         Text(
-                            text = uiState.error ?: "Error desconocido",
+                            text = "No se encontraron películas para \"${uiState.searchQuery}\"",
                             style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .padding(32.dp),
                             textAlign = TextAlign.Center
                         )
-                        Button(onClick = { viewModel.refresh() }) {
-                            Text("Reintentar")
+                    }
+
+                    uiState.error != null -> {
+                        Column(
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .padding(32.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Movie,
+                                contentDescription = null,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                            Text(
+                                text = uiState.error ?: "Error desconocido",
+                                style = MaterialTheme.typography.bodyLarge,
+                                textAlign = TextAlign.Center
+                            )
+                            Button(onClick = { viewModel.refresh() }) {
+                                Text("Reintentar")
+                            }
                         }
                     }
-                }
 
-                showFavoritesOnly && uiState.favoriteMovies.isEmpty() -> {
-                    Text(
-                        text = "No tienes películas favoritas aún",
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .padding(32.dp),
-                        textAlign = TextAlign.Center
-                    )
-                }
-
-                else -> {
-                    val displayList = if (showFavoritesOnly) {
-                        uiState.favoriteMovies.map { it.toMovie() }
-                    } else {
-                        uiState.movies
+                    showFavoritesOnly && uiState.favoriteMovies.isEmpty() -> {
+                        Text(
+                            text = "No tienes películas favoritas aún",
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .padding(32.dp),
+                            textAlign = TextAlign.Center
+                        )
                     }
 
-                    LazyColumn(
-                        verticalArrangement = Arrangement.spacedBy(4.dp),
-                        modifier = Modifier.padding(top = 8.dp)
-                    ) {
-                        items(displayList, key = { it.id }) { movie ->
-                            MovieCard(
-                                movie = movie,
-                                isFavorite = movie.id in uiState.favoriteIds,
-                                onFavoriteClick = { viewModel.toggleFavorite(movie) },
-                                onClick = { onMovieClick(movie.id) }
-                            )
+                    else -> {
+                        val displayList = if (uiState.isSearchActive) {
+                            uiState.searchResults
+                        } else if (showFavoritesOnly) {
+                            uiState.favoriteMovies.map { it.toMovie() }
+                        } else {
+                            uiState.movies
+                        }
+
+                        LazyColumn(
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                            modifier = Modifier.padding(top = 8.dp)
+                        ) {
+                            itemsIndexed(displayList, key = { _, movie -> movie.id }) { _, movie ->
+                                MovieCard(
+                                    movie = movie,
+                                    isFavorite = movie.id in uiState.favoriteIds,
+                                    onFavoriteClick = { viewModel.toggleFavorite(movie) },
+                                    onClick = { onMovieClick(movie.id) }
+                                )
+                            }
                         }
                     }
                 }

@@ -14,7 +14,8 @@ data class MovieDetailUiState(
     val movieDetail: MovieDetail? = null,
     val isLoading: Boolean = false,
     val error: String? = null,
-    val isFavorite: Boolean = false
+    val isFavorite: Boolean = false,
+    val trailerKey: String? = null
 )
 
 class MovieDetailViewModel(
@@ -27,6 +28,7 @@ class MovieDetailViewModel(
 
     init {
         loadMovieDetail()
+        loadTrailer()
         observeFavoriteStatus()
     }
 
@@ -49,6 +51,15 @@ class MovieDetailViewModel(
                     )
                 }
             )
+        }
+    }
+
+    private fun loadTrailer() {
+        viewModelScope.launch {
+            val result = repository.getMovieTrailer(movieId)
+            result.onSuccess { video ->
+                _uiState.value = _uiState.value.copy(trailerKey = video?.key)
+            }
         }
     }
 
